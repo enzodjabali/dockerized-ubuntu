@@ -1,0 +1,6 @@
+services:
+  ubuntu:
+    build: .
+    ports:
+      - "5902:5902"
+    tty: true
