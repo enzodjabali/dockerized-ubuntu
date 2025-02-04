@@ -1,7 +1,12 @@
-FROM ubuntu:22.04
+ARG UBUNTU_VERSION
+FROM ubuntu:${UBUNTU_VERSION}
+
+ARG USERNAME
+ARG PASSWORD
+ARG RESOLUTION
 
 RUN apt update && \
-    DEBIAN_FRONTEND=noninteractive apt install -y ubuntu-mate-desktop locales sudo tigervnc-standalone-server software-properties-common iputils-ping && \
+    DEBIAN_FRONTEND=noninteractive apt install -y ubuntu-mate-desktop locales sudo tigervnc-standalone-server software-properties-common && \
     locale-gen en_US.UTF-8 && \
     update-locale LANG=en_US.UTF-8
 
@@ -24,12 +29,9 @@ RUN echo "Package: firefox*" > /etc/apt/preferences.d/mozilla-firefox && \
 # Install Firefox Again
 RUN apt update && apt install firefox -y
 
-ARG USER=testuser
-ARG PASS=1234
-
-RUN useradd -m $USER -p $(openssl passwd $PASS) && \
-    usermod -aG sudo $USER && \
-    chsh -s /bin/bash $USER
+RUN useradd -m $USERNAME -p $(openssl passwd $PASSWORD) && \
+    usermod -aG sudo $USERNAME && \
+    chsh -s /bin/bash $USERNAME
 
 RUN echo "#!/bin/sh\n\
 export XDG_SESSION_DESKTOP=mate\n\
@@ -38,15 +40,15 @@ export XDG_CURRENT_DESKTOP=MATE\n\
 export XDG_CONFIG_DIRS=/etc/xdg/xdg-mate:/etc/xdg\n\
 exec dbus-run-session -- mate-session" > /xstartup && chmod +x /xstartup
 
-RUN mkdir /home/$USER/.vnc && \
-    echo $PASS | vncpasswd -f > /home/$USER/.vnc/passwd && \
-    chmod 0600 /home/$USER/.vnc/passwd && \
-    chown -R $USER:$USER /home/$USER/.vnc
+RUN mkdir /home/$USERNAME/.vnc && \
+    echo $PASSWORD | vncpasswd -f > /home/$USERNAME/.vnc/passwd && \
+    chmod 0600 /home/$USERNAME/.vnc/passwd && \
+    chown -R $USERNAME:$USERNAME /home/$USERNAME/.vnc
 
-RUN cp -f /xstartup /home/$USER/.vnc/xstartup
+RUN cp -f /xstartup /home/$USERNAME/.vnc/xstartup
 
 RUN echo "#!/bin/sh\n\
-sudo -u $USER -g $USER -- vncserver -rfbport 5902 -geometry 1920x1080 -depth 24 -verbose -localhost no -autokill no" > /startvnc && chmod +x /startvnc
+sudo -u $USERNAME -g $USERNAME -- vncserver -rfbport 5902 -geometry $RESOLUTION -depth 24 -verbose -localhost no -autokill no" > /startvnc && chmod +x /startvnc
 
 EXPOSE 5902
 
