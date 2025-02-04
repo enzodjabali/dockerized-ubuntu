@@ -1,6 +1,13 @@
 services:
   ubuntu:
-    build: .
+    build:
+      context: .
+      args:
+        UBUNTU_VERSION: "22.04"
+        USERNAME: "admin"
+        PASSWORD: "admin"
+        RESOLUTION: "1920x1080"
+    hostname: ubuntu
+    tty: true
     ports:
       - "5902:5902"
-    tty: true
